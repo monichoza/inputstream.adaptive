@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <cstddef>
+
 //Functionality wich is supported by the Decrypter
 class AP4_CencSingleSampleDecrypter;
 class AP4_DataBuffer;

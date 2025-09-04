@@ -529,3 +529,56 @@ void parseheader(std::map<std::string, std::string>& headerMap, const std::strin
       headerMap[trimcp(b->substr(0, pos))] = url_decode(trimcp(b->substr(pos+1)));
   }
 }
+
+// ClearKey helper functions
+std::vector<uint8_t> hexStringToBytes(const std::string& hex)
+{
+  std::vector<uint8_t> bytes;
+  
+  if (hex.length() % 2 != 0)
+    return bytes;
+  
+  bytes.reserve(hex.length() / 2);
+  
+  for (size_t i = 0; i < hex.length(); i += 2)
+  {
+    uint8_t byte = (HexNibble(hex[i]) << 4) | HexNibble(hex[i + 1]);
+    bytes.push_back(byte);
+  }
+  
+  return bytes;
+}
+
+std::vector<uint8_t> base64urlDecode(const std::string& input)
+{
+  std::vector<uint8_t> result;
+  
+  if (input.empty())
+    return result;
+  
+  // Convert base64url to base64 by replacing characters and adding padding
+  std::string base64 = input;
+  for (size_t i = 0; i < base64.length(); ++i) {
+    if (base64[i] == '-') base64[i] = '+';
+    else if (base64[i] == '_') base64[i] = '/';
+  }
+  
+  // Add padding if needed
+  while (base64.length() % 4 != 0)
+    base64 += '=';
+  
+  // Decode using existing b64_decode function
+  result.resize((base64.length() * 3) / 4 + 3); // Allocate enough space
+  unsigned int out_len = result.size();
+  
+  if (b64_decode(base64.c_str(), base64.length(), result.data(), out_len))
+  {
+    result.resize(out_len);
+  }
+  else
+  {
+    result.clear();
+  }
+  
+  return result;
+}

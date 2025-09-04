@@ -48,6 +48,10 @@ char* KIDtoUUID(const uint8_t* kid, char* dst);
 bool create_ism_license(std::string key, std::string license_data, std::vector<uint8_t>& init_data);
 void parseheader(std::map<std::string, std::string>& headerMap, const std::string& headerString);
 
+// ClearKey helper functions
+std::vector<uint8_t> hexStringToBytes(const std::string& hex);
+std::vector<uint8_t> base64urlDecode(const std::string& input);
+
 extern bool preReleaseFeatures;
 
 #define MKTAG(a,b,c,d) ((a) | ((b) << 8) | ((c) << 16) | ((unsigned)(d) << 24))

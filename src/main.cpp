@@ -23,6 +23,7 @@
 #include "TSReader.h"
 #include "WebmReader.h"
 #include "aes_decrypter.h"
+#include "clearkey_decrypter.h"
 #include "helpers.h"
 #include "log.h"
 #include "oscompat.h"
@@ -2128,6 +2129,18 @@ void Session::GetSupportedDecrypterURN(std::string& key_system)
   typedef SSD::SSD_DECRYPTER* (*CreateDecryptorInstanceFunc)(SSD::SSD_HOST * host,
                                                              uint32_t version);
 
+  // First check if ClearKey is requested
+  ClearKeyDecrypter* clearKeyDecrypter = new ClearKeyDecrypter();
+  const char* clearKeyUrn = clearKeyDecrypter->SelectKeySytem(license_type_.c_str());
+  if (clearKeyUrn)
+  {
+    kodi::Log(ADDON_LOG_DEBUG, "Using built-in ClearKey decrypter");
+    decrypter_ = clearKeyDecrypter;
+    key_system = clearKeyUrn;
+    return;
+  }
+  delete clearKeyDecrypter;
+
   std::string specialpath = kodi::GetSettingString("DECRYPTERPATH");
   if (specialpath.empty())
   {
@@ -2207,18 +2220,24 @@ void Session::DisposeSampleDecrypter()
 
 void Session::DisposeDecrypter()
 {
-  if (!decrypterModule_)
-    return;
-
   DisposeSampleDecrypter();
 
-  typedef void (*DeleteDecryptorInstanceFunc)(SSD::SSD_DECRYPTER*);
-  DeleteDecryptorInstanceFunc disposefn;
-  if (decrypterModule_->RegisterSymbol(disposefn, "DeleteDecryptorInstance"))
-    disposefn(decrypter_);
+  if (decrypterModule_)
+  {
+    typedef void (*DeleteDecryptorInstanceFunc)(SSD::SSD_DECRYPTER*);
+    DeleteDecryptorInstanceFunc disposefn;
+    if (decrypterModule_->RegisterSymbol(disposefn, "DeleteDecryptorInstance"))
+      disposefn(decrypter_);
 
-  delete decrypterModule_;
-  decrypterModule_ = 0;
+    delete decrypterModule_;
+    decrypterModule_ = 0;
+  }
+  else if (decrypter_)
+  {
+    // Built-in decrypter (like ClearKey)
+    delete decrypter_;
+  }
+  
   decrypter_ = 0;
 }
 

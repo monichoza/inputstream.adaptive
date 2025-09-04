@@ -22,6 +22,7 @@ set(ADP_SOURCES
 	src/ADTSReader.cpp
 	src/md5.cpp
 	src/WebmReader.cpp
+	src/clearkey_decrypter.cpp
 	)
 
 set(ADP_HEADERS
@@ -43,6 +44,7 @@ set(ADP_HEADERS
 	src/ADTSReader.h
 	src/md5.h
 	src/WebmReader.h
+	src/clearkey_decrypter.h
 	)
 
 if(WIN32)
